@@ -1,4 +1,4 @@
-﻿Function Show-Prompt {
+Function Show-Prompt {
 <#
 	.SYNOPSIS
 		Function to display a Simple Yes or No Prompt.
@@ -19,23 +19,33 @@
 		Help text for No action
 	
 	.EXAMPLE
-		PS C:\> Show-Prompt "Continue?" -yes -HelpYes "Continue the script" -HelpNo "Abort the script"
+		PS C:\> Show-Prompt "Continue?" -Boolean
 		
 		Continue?
-		[N] No  [Y] Yes  [?] Help (default is "Y"): ?
-		N - Abort the script
-		Y - Continue the script
+		[N] No  [Y] Yes  [?] Help (default is "N"): ?
+		N - No
+		Y - Yes
 		
-		[N] No  [Y] Yes  [?] Help (default is "Y"): Y
+		[N] No  [Y] Yes  [?] Help (default is "N"): Y
 		
 		True
 
 	.EXAMPLE
-		PS C:\> "Continue?" | Show-Prompt
+		PS C:\> "Continue?" | Show-Prompt -Default 1
 		
 		Continue?
-		[N] No  [Y] Yes  [?] Help (default is "Y"): ?
+		[N] No  [Y] Yes  [?] Help (default is "Y"): N
 		
+		No
+
+	.EXAMPLE
+		$Options = @{
+			One = "Option 1";
+			Two = "Option 2";
+			Three = "Option 3";
+			4 = "Option Four";
+		}
+		PS C:\> Show-Prompt -Options
 
 	.INPUTS
 		System.String
@@ -49,24 +59,32 @@
 #>
 
 	Param(
-		[switch] $Yes,
-		[string] $Title="",
-		[Parameter(Position=0,ValueFromPipeline=$true)][string] $Message="",
-		[string] $HelpYes="",
-		[string] $HelpNo=""
+		[String]$Title,
+		[Parameter(Position=0,ValueFromPipeline=$true)][String]$Message,
+		[HashTable]$Options=@{ "yes"="Yes";"No"="No"},
+		[Int32]$Default=0,
+		[Switch]$Boolean
 	)
 	
-	Function SwitchYN($Object) {
-		Switch($Object) {
-			$true 	{ Return 1 }
-			$false 	{ Return 0 } 
-			1 		{ return $true }
-			0 		{ return $false }
+	$global:items = @()
+	[System.Collections.Hashtable] $test = @{}
+	[int]$Index = 0
+    foreach($option in ($Options.Keys | Sort))
+    {
+        $items += New-Object System.Management.Automation.Host.ChoiceDescription(("&" + $option), $options.Item($option))
+		$test.Add($Index, $option)
+		$Index++
+    }
+	Try {
+    	$choice = $host.ui.PromptForChoice($Title,$Message,$items,$Default)
+	} Catch { return } 
+	if ($Boolean) {
+		Switch($choice) {
+			0 { return $false }
+			1 { Return $true }
+			default { Return $_ }
 		}
+	} Else {
+		Return $test.Item($choice)
 	}
-	$Y = New-Object System.Management.Automation.Host.ChoiceDescription("&Yes", $HelpYes)
-	$N = New-Object System.Management.Automation.Host.ChoiceDescription("&No", $HelpNo)
-	$options = [System.Management.Automation.Host.ChoiceDescription[]]($N, $Y)
-	$result = $host.ui.PromptForChoice($Title, $Message, $options, (SwitchYN($Yes)))
-	Return SwitchYN($result)
 }
