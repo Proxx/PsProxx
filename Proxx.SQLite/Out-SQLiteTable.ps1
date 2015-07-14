@@ -123,6 +123,6 @@
 	End {
 		Write-Output -InputObject "Success: $Count Errors: $Errors"
 		if (!($Force) -and ($Errors -gt 0)) { $Whatif = $true }
-		if ($Whatif) { Write-Verbose -Message "Rollback transaction"; $Transaction.Rollback() } Else { Write-Verbose -Message -Message "Commit transaction"; $Transaction.Commit() }
+		if ($Whatif) { Write-Verbose -Message "Rollback transaction"; $Transaction.Rollback() } Else { Write-Verbose -Message "Commit transaction"; $Transaction.Commit() }
 	}
 }
