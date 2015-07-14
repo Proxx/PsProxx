@@ -1,4 +1,4 @@
-Function Show-Prompt {
+﻿Function Show-Prompt {
 <#
 	.SYNOPSIS
 		Function to display a Simple Yes or No Prompt.
